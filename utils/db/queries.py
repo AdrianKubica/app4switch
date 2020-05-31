@@ -2,9 +2,9 @@ import datetime
 from utils.db.config import db
 
 
-async def create_table(table_name):
-    query = f"""
-    CREATE TABLE IF NOT EXISTS {table_name}(
+async def create_table():
+    query = """
+    CREATE TABLE IF NOT EXISTS data(
         id SERIAL,
         host TEXT,
         name TEXT,
@@ -26,28 +26,28 @@ def transform_switch_data_record(switch_data_record):
     return switch_data_record
 
 
-async def insert_switch_data(switch_data, table_name):
-    query = f"""
-        INSERT INTO {table_name}(host, name, key, itemid, valinmb, clock, t, nr_week)
+async def insert_switch_data(switch_data):
+    query = """
+        INSERT INTO data(host, name, key, itemid, valinmb, clock, t, nr_week)
         values(:host, :name, :key, :itemid, :valinmb, :clock, :t, :nr_week)
     """
     switch_data_transformed = list(map(transform_switch_data_record, switch_data))
     await db.execute_many(query=query, values=switch_data_transformed)
 
 
-async def delete_switch_data(table_name):
-    query = f"""
-    DELETE FROM {table_name}
+async def delete_switch_data():
+    query = """
+    DELETE FROM data
     """
     await db.execute(query)
 
 
-async def calculate_data(table_name):
-    query = f"""
+async def calculate_data():
+    query = """
     SELECT data1.*, data2.avg_day, data3.avg_week
     FROM
         (SELECT key, nr_week, left(t, 10) as day, COUNT(*) as observation_counter
-        FROM {table_name}
+        FROM data
         GROUP BY key, nr_week, left(t, 10)
         ORDER BY key, nr_week, day) as data1
         LEFT JOIN
@@ -56,7 +56,7 @@ async def calculate_data(table_name):
         FROM (SELECT *
         FROM
            (SELECT *, row_number() over (PARTITION BY key, nr_week, left(t, 10) ORDER BY valinmb DESC) as rank
-            FROM {table_name}) as data_ranked
+            FROM data) as data_ranked
         WHERE rank BETWEEN 15 AND 26) as data_stats
         GROUP BY key, nr_week, left(t, 10)
         ORDER BY key, nr_week, day) as data2
@@ -69,7 +69,7 @@ async def calculate_data(table_name):
         FROM (SELECT *
         FROM
            (SELECT *, row_number() over (PARTITION BY key, nr_week, left(t, 10) ORDER BY valinmb DESC) as rank
-            FROM {table_name}) as data_ranked
+            FROM data) as data_ranked
         WHERE rank BETWEEN 15 AND 26) as data_stats
         GROUP BY key, nr_week
         ORDER BY key, nr_week) as data3
@@ -77,5 +77,5 @@ async def calculate_data(table_name):
         ON data1.key = data3.key AND data1.nr_week = data3.nr_week;
     """
     result = await db.fetch_all(query=query, values=None)
-    return {table_name: [dict(row) for row in result]}
+    return [dict(row) for row in result]
 
