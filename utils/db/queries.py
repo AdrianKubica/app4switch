@@ -16,7 +16,7 @@ async def create_table():
         nr_week INT
     )
     """
-    await db.execute(query)
+    await db.execute(query=query, values=None)
 
 
 def transform_switch_data_record(switch_data_record):
@@ -39,7 +39,7 @@ async def delete_switch_data():
     query = """
     DELETE FROM data
     """
-    await db.execute(query)
+    await db.execute(query=query, values=None)
 
 
 async def calculate_data():

@@ -1,138 +1,103 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-typescript"
-          target="_blank"
-          rel="noopener"
-          >typescript</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router"
-          target="_blank"
-          rel="noopener"
-          >router</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex"
-          target="_blank"
-          rel="noopener"
-          >vuex</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <b-card>
+      <b-row>
+        <b-col cols="6" offset="3" class="my-4">
+          <b-input-group class="mt-3">
+              <b-form-file
+              name="file"
+              v-model="file"
+              :state="Boolean(file)"
+              placeholder="Choose a file or drop it here..."
+              drop-placeholder="Drop file here..."
+              class="switch-input-file"
+              ></b-form-file>
+            <b-button :disabled="loading" @click="getSwitchData" variant="outline-success">Send</b-button>
+          </b-input-group>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col cols="10" offset="1" class="my-4">
+          <b-table
+          :items="results"
+          :fields="fields"
+          v-if="!loading"
+          :striped="true"
+          ></b-table>
+          <b-spinner v-else variant="primary"></b-spinner>
+        </b-col>
+      </b-row>
+    </b-card>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
+import { SwitchAPI } from "@/api/switch";
+
 
 @Component
 export default class HelloWorld extends Vue {
-  @Prop() private msg!: string;
+
+  private file: any = [];
+  private results = [];
+  private loading = false;
+
+  private fields = [
+    {
+      key: 'key',
+      sortable: true
+    },
+    {
+      key: 'nr_week',
+      sortable: true
+    },{
+      key:'day',
+      sortable: true
+    }, {
+      key: 'observation_counter',
+      sortable: true
+    },
+    {
+      key: 'avg_day',
+      sortable: true
+    },
+    {
+      key: 'avg_week',
+      sortable: true
+    }
+  ];
+
+  async getSwitchData() {
+    this.loading = true;
+    const formData = new FormData();
+    formData.append('file', this.file);
+    try {
+      const res = await SwitchAPI.getSwitchData(formData);
+      this.results = res?.result;
+      this.loading = false
+      this.$bvToast.toast(`Successfully read switch data from server`, {
+        title: 'App4Switch',
+        autoHideDelay: 5000,
+        variant: 'success'
+      })
+    } catch(err) {
+        this.$bvToast.toast(`Some error occured: ${err.message}`, {
+          title: 'App4Switch',
+          autoHideDelay: 5000,
+          variant: 'danger'
+        })
+    }
+  }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+  button:disabled {
+   background-color: #E9ECEF;
+  }
+
+  .switch-input-file {
+    cursor: pointer;
+  }
 </style>

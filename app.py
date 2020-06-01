@@ -10,7 +10,6 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def connect_db():
-    print('start')
     await db.connect()
     await create_table()
 
@@ -18,11 +17,6 @@ async def connect_db():
 @app.on_event("shutdown")
 async def disconnect_db():
     await db.disconnect()
-
-
-@app.get('/api')
-async def index():
-    return {'hello': 'world'}
 
 
 @app.post('/api/upload')
@@ -35,4 +29,4 @@ async def upload(file: UploadFile = File(...)):
     result = await calculate_data()
     return {'result': result}
 
-app.mount('/', StaticFiles(directory="front/dist", html=True))
+app.mount('/', StaticFiles(directory="frontend/dist", html=True))

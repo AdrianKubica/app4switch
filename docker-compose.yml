@@ -10,7 +10,7 @@ services:
       - ./:/app
     environment:
       - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_PASSWORD=*****
       - POSTGRES_DB=switch
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
@@ -19,7 +19,7 @@ services:
     restart: always
     environment:
       - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_PASSWORD=*****
       - POSTGRES_DB=switch
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
