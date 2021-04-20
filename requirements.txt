@@ -1,5 +1,5 @@
 aiofiles==0.5.0
-asyncpg==0.20.1
+asyncpg==0.21.0
 autopep8==1.5.2
 click==7.1.2
 databases==0.3.2
